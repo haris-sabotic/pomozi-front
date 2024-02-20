@@ -9,34 +9,127 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        .organizations {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-
         h1 {
             width: 100%;
             text-align: center;
-            margin-bottom: 50px;
         }
 
-        img {
-            max-height: 300px;
+        h2 {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #FF6B57;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+            max-width: 750px;
+        }
+
+        label {
+            margin-top: 25px;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select {
+            padding: 10px 10px;
+            border-radius: 10px;
+            border: 1px solid black;
+            font-size: 1.2rem;
+        }
+
+        button {
+            margin-top: 60px;
+            padding: 10px 10px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background-color: #FF6B57;
+            cursor: pointer
+        }
+
+        button:hover {
+            background-color: #eb7f7f;
         }
     </style>
 </head>
 
 <body>
-    <h1>Izaberite organizaciju</h1>
+    <h1>Dodaj donaciju</h1>
+    <h2>Pomozi#</h2>
 
-    <div class="organizations">
-        <a href="/add_donation.html?org=crveni_krst"> <img src="assets/crveni_krst.png" alt=""> </a>
-        <a href="/add_donation.html?org=budi_human"> <img src="assets/budi_human.png" alt=""> </a>
-        <a href="/add_donation.html?org=humanost"> <img src="assets/humanost.png" alt=""> </a>
+    <div class="form">
+        <label for="user">Izaberite korisnika:</label>
+        <select name="user" id="user"></select>
+        <label for="org">Izaberite organizaciju:</label>
+        <select name="org" id="org"></select>
+        <label for="donatedAmount">Unesite koliko je novca donirano (u eurima):</label>
+        <input type="number" name="donatedAmount" id="donatedAmount" min="0" step="0.1" value="0.0">
+        <label for="points">Unesite koliko bodova korisnik dobija za donaciju:</label>
+        <input type="number" name="points" id="points" min="0" step="1" value="0">
+
+        <button>OK</button>
     </div>
+
+    <script src="org_data.js"></script>
+    <script>
+        fetch("http://84.247.177.105:3000/api/user/all", { method: "GET" })
+            .then(r => r.json())
+            .then(r => {
+                let select = document.querySelector("#user");
+
+                r.data.forEach(user => {
+                    var opt = document.createElement('option');
+                    opt.value = user.id;
+                    opt.innerHTML = user.name;
+                    select.appendChild(opt);
+                });
+            });
+
+        fetch("http://84.247.177.105:3000/api/organization", { method: "GET" })
+            .then(r => r.json())
+            .then(r => {
+                let select = document.querySelector("#org");
+
+                r.data.forEach(user => {
+                    var opt = document.createElement('option');
+                    opt.value = user.id;
+                    opt.innerHTML = user.name;
+                    select.appendChild(opt);
+                });
+            });
+
+        document.querySelector("button").addEventListener("click", function () {
+            const user = document.querySelector("#user").value;
+            const donatedTo = document.querySelector("#org").value;
+            const donatedAmount = parseFloat(document.querySelector("#donatedAmount").value);
+            const points = parseInt(document.querySelector("#points").value);
+
+            console.log({ user, donatedTo, donatedAmount, points });
+
+            fetch(`http://84.247.177.105:3001/api/donation/create/${user}`,
+                {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ donatedTo, donatedAmount, points })
+                })
+                .then(r => r.json())
+                .then(r => {
+                    alert("Donacija uspješno dodata!");
+                });
+        })
+    </script>
 </body>
 
 </html>
